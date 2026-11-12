@@ -1,0 +1,48 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+*.local
+
+# Environment variables. Keep .env.example tracked.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# Tests
+coverage
+node_modules/.cache
+
+# Local uploads
+public/uploads

@@ -1,0 +1,14 @@
+---
+description: Testing — mocked Vitest for UI and API, no live side effects
+globs: "**/*.{test,spec}.{ts,tsx}"
+alwaysApply: false
+---
+
+# Testing
+
+- `npm test` runs Vitest. Node project: `api/**/*.test.ts`. jsdom project: `client/**/*.spec.tsx`.
+- Do not open TiDB from a test. Call `__test.setDb` with an in-memory executor.
+- Do not send real email. `VITEST=true` pushes messages to `__test.outbox`.
+- API recommendations, permissions and grid query parsing are pure tests.
+- UI tests render with the Redux store and assert behavior (click, type, resulting text), not a single screenshot.
+- `npm run deploy:prod` runs the inline-import gate, typecheck and this suite. `npm run test:cleanup-fixtures` is a no-op because the suite does not write fixtures.

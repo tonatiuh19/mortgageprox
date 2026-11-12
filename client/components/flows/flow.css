@@ -1,0 +1,39 @@
+.mp-flow {
+  height: min(70vh, 720px);
+  min-height: 420px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  background: #fafaf9;
+}
+
+.mp-flow .react-flow__node {
+  font-family: inherit;
+}
+
+.mp-flow-node {
+  width: 220px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  background: white;
+  padding: 12px;
+  box-shadow: 0 8px 24px rgba(20, 20, 20, 0.04);
+}
+
+.mp-flow-node.is-selected {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.mp-flow-node strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.mp-flow-node span {
+  display: block;
+  margin-top: 4px;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+}

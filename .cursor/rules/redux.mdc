@@ -1,0 +1,20 @@
+---
+description: Redux data fetching — never call APIs from components
+globs: client/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Redux
+
+Server data is loaded in slices with `createAsyncThunk` and the shared axios client `client/lib/api.ts`.
+
+```typescript
+export const fetchTenants = createAsyncThunk("command/tenants", async (query: TenantQuery) => {
+  const { data } = await api.get("/api/command/tenants", { params: query });
+  return data;
+});
+```
+
+Components use `useAppDispatch` and `useAppSelector` from `client/store/hooks.ts`.
+
+Do not call axios or fetch from a component, an effect's body, or an event handler. The effect dispatches a thunk.

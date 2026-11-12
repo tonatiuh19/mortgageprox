@@ -1,0 +1,16 @@
+---
+description: API serverless rules — keep logic inline in api/index.ts
+globs: api/**/*
+alwaysApply: false
+---
+
+# API (Vercel serverless)
+
+- All routes and helpers used at runtime live inline in `api/index.ts`.
+- Shared types: `import type` from `../shared/api` only.
+- Do not import runtime values from `../shared/` or from sibling `api/*.ts` files. Sibling files are tests.
+- Update `api/swagger.yaml` in the same change as any route, payload or behavior change.
+- Dev serves the UI on port 8080 and proxies `/api` to the Express app on 8081.
+- Return `{ error: string }` with a translation key (`errors.*` or `validation.*`). Never return raw TiDB errors.
+- Passwordless OTP only. Do not add passwords.
+- Vitest must not call Resend. `notifySandbox()` is on when `VITEST=true`.

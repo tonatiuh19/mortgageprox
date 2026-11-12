@@ -1,0 +1,17 @@
+---
+description: Deep review before finishing a change
+alwaysApply: true
+---
+
+# Deep review
+
+Before you finish a change, check:
+
+1. Did the API stay inside `api/index.ts`, with `import type` only from shared?
+2. Did the schema change go through a migration and `schema.sql`?
+3. Does `api/swagger.yaml` match the routes you touched?
+4. Are new strings in both locale files?
+5. Do list screens still search, sort and paginate on the server, including a phone card?
+6. Can a loan officer see only their own book, and can only the platform owner change billing?
+7. Will Vitest send email or write TiDB? It must not.
+8. Does the page still fit at 320px?

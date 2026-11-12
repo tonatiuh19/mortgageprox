@@ -1,0 +1,14 @@
+---
+description: Database schema, migrations, and TiDB SQL conventions
+globs: database/**/*,api/index.ts
+alwaysApply: false
+---
+
+# Database
+
+- Source of truth while coding: `database/schema.sql`.
+- Schema changes: `database/migrations/YYYYMMDD_HHMMSS_description.sql`, then apply with `npm run db:migrate`, then refresh `schema.sql`.
+- TiDB Cloud Serverless / MySQL 8. Connect with SSL.
+- Credentials live in `.env`: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL`.
+- Sort and filter columns in list endpoints come from a whitelist. Search text is a bound `LIKE` parameter.
+- Map duplicate keys to `errors.accountExists` or `errors.seatLimit`. Do not leak driver messages.

@@ -1,0 +1,847 @@
+openapi: 3.0.3
+info:
+  title: MortgageProx API
+  version: 0.1.0
+  description: Passwordless brokerage platform. All routes are served by api/index.ts.
+paths:
+  /api/app/billing:
+    get:
+      summary: Plan, start fee, included amounts and MCP usage for the signed-in brokerage
+      responses:
+        "200":
+          description: Billing snapshot
+        "401":
+          description: errors.unauthorized
+        "403":
+          description: errors.forbidden
+  /api/mcp:
+    get:
+      summary: Public description of the read-only MCP connector
+      responses:
+        "200":
+          description: Transport and price per successful read
+    post:
+      summary: JSON-RPC for a brokerage MCP key. initialize and tools/list are free. A successful tools/call is 3 cents.
+      responses:
+        "200":
+          description: JSON-RPC result
+        "202":
+          description: Notification accepted
+        "401":
+          description: errors.unauthorized
+        "403":
+          description: Module off, suspended, or trial ended
+  /api/app/billing/mcp-key:
+    post:
+      summary: Create or replace the brokerage MCP key. The full key is returned once.
+      responses:
+        "200":
+          description: Token and prefix
+        "401":
+          description: errors.unauthorized
+        "403":
+          description: errors.forbidden
+  /api/app/modules:
+    get:
+      summary: Every product module, whether it is on, and the plan it needs
+      responses:
+        "200":
+          description: Catalog for the signed-in brokerage
+        "401":
+          description: errors.unauthorized
+    post:
+      summary: Turn an included module on or off. Core stays on. The owner only.
+      responses:
+        "200":
+          description: Module saved
+        "401":
+          description: errors.unauthorized
+        "403":
+          description: errors.forbidden
+        "409":
+          description: Higher plan, core, or transcripts without a parent
+  /api/app/billing/upgrade:
+    post:
+      summary: Move the brokerage to a higher public plan. The owner only. A live subscription is repriced first.
+      responses:
+        "200":
+          description: Plan updated
+        "401":
+          description: errors.unauthorized
+        "402":
+          description: errors.billing.card
+        "403":
+          description: errors.forbidden
+        "409":
+          description: Downgrade, custom quote, or unknown plan
+        "503":
+          description: errors.stripe
+  /api/app/billing/checkout:
+    post:
+      summary: Start a styled Payment Element session for the trial start fee
+      responses:
+        "200":
+          description: Checkout client secret
+        "409":
+          description: Fee already paid or not owed
+        "503":
+          description: errors.stripe
+  /api/app/billing/seats:
+    post:
+      summary: Add or remove one extra seat on the subscription. The seat is billed until it is removed.
+      responses:
+        "200":
+          description: Updated extra seat count
+        "401":
+          description: errors.unauthorized
+        "402":
+          description: errors.billing.card
+        "409":
+          description: Quote, occupied seat, or subscription not open
+        "503":
+          description: errors.stripe
+  /api/app/billing/packs:
+    post:
+      summary: Charge a one-time pack for emails, letters or open loans. Texts and minutes are not sold.
+      responses:
+        "200":
+          description: Granted, or a card confirmation is still required
+        "402":
+          description: errors.billing.card
+        "409":
+          description: Pack is not on this plan
+        "503":
+          description: errors.stripe
+  /api/app/billing/packs/complete:
+    post:
+      summary: Grant a pack after the card confirmation succeeds
+      responses:
+        "200":
+          description: Pack granted
+        "402":
+          description: errors.paymentRequired
+  /api/stripe/webhook:
+    post:
+      summary: Stripe webhook. Fulfills the start fee only after the signature checks and the payment is not unpaid.
+      responses:
+        "200":
+          description: Accepted
+        "400":
+          description: errors.stripe
+  /api/public/legal/{code}:
+    get:
+      summary: Terms or privacy Markdown. office=slug returns that brokerage's page. A brokerage host returns that brokerage's page. Other hosts return MortgageProx's page. scope=platform always returns MortgageProx. A suspended brokerage is not found.
+      parameters:
+        - in: query
+          name: scope
+          schema: { type: string, enum: [platform] }
+        - in: query
+          name: office
+          schema: { type: string }
+      responses:
+        "200":
+          description: Page body
+        "404":
+          description: errors.notFound
+  /api/app/legal:
+    get:
+      summary: This brokerage's terms and privacy for the owner
+      responses:
+        "200":
+          description: Both pages
+        "401":
+          description: errors.unauthorized
+        "403":
+          description: errors.forbidden
+  /api/app/legal/{code}:
+    put:
+      summary: Replace this brokerage's terms or privacy Markdown
+      responses:
+        "200":
+          description: Saved
+        "400":
+          description: validation.wizard
+        "403":
+          description: errors.forbidden
+  /api/command/tenants/{id}/legal:
+    get:
+      summary: A brokerage's terms and privacy for the platform owner
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Both pages
+        "404":
+          description: errors.notFound
+  /api/command/tenants/{id}/legal/{code}:
+    put:
+      summary: Replace a brokerage's terms or privacy Markdown
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+        - in: path
+          name: code
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Saved
+        "400":
+          description: validation.wizard
+        "404":
+          description: errors.notFound
+  /api/command/legal:
+    get:
+      summary: Terms and privacy Markdown for the platform owner
+      responses:
+        "200":
+          description: Both pages
+        "401":
+          description: errors.unauthorized
+        "403":
+          description: errors.forbidden
+  /api/command/legal/{code}:
+    put:
+      summary: Replace the terms or privacy Markdown
+      responses:
+        "200":
+          description: Saved
+        "400":
+          description: validation.wizard
+        "403":
+          description: errors.forbidden
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /api/public/host:
+    get:
+      summary: Brokerage for the incoming host, if this address belongs to one
+      responses:
+        "200":
+          description: Tenant name and address, or tenant null
+  /api/public/catalog:
+    get:
+      summary: Plans, modules and add-ons. Trial plans include a start fee and monthly included amounts. Custom styles are included.
+      responses:
+        "200":
+          description: Catalog
+  /api/public/wizard/host:
+    get:
+      summary: Next free brokerage address for a name. A taken slug gets a numeric suffix.
+      parameters:
+        - in: query
+          name: name
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: slug and host
+        "400":
+          description: validation.wizard
+        "409":
+          description: errors.duplicate
+  /api/public/wizard/recommend:
+    post:
+      summary: Recommend a plan from a wizard selection
+      responses:
+        "200":
+          description: Recommendation
+        "400":
+          description: validation.wizard
+  /api/public/wizard/checkout:
+    post:
+      summary: Open a Stripe Checkout session for the trial start fee. The workspace is created after the payment succeeds.
+      responses:
+        "200":
+          description: clientSecret, publishableKey and intentId
+        "402":
+          description: errors.paymentRequired
+        "503":
+          description: errors.stripe
+  /api/public/wizard/complete:
+    post:
+      summary: Create the brokerage after the start fee payment succeeds, set the owner session cookie, and email a sign-in code. Returns the office name and host. The welcome email is sent while the start fee is credited.
+      responses:
+        "201":
+          description: Workspace created
+        "402":
+          description: errors.paymentRequired
+  /api/public/wizard/start:
+    post:
+      summary: Create a quoted brokerage, set the owner session cookie, and email a sign-in code. Plans with a start fee must be paid through checkout first.
+      responses:
+        "201":
+          description: Trial created
+        "409":
+          description: errors.accountExists
+  /api/auth/otp/request:
+    post:
+      summary: Email a 6-digit code if the account is active. The response says sent true only when that email went out.
+      responses:
+        "200":
+          description: ok, and sent when a code was emailed
+  /api/auth/otp/verify:
+    post:
+      summary: Exchange a code for an httpOnly session
+      responses:
+        "200":
+          description: Auth user
+        "401":
+          description: errors.authInvalid
+  /api/auth/me:
+    get:
+      summary: Current session
+      responses:
+        "200":
+          description: User
+        "401":
+          description: errors.unauthorized
+  /api/auth/logout:
+    post:
+      summary: Revoke the session
+      responses:
+        "200":
+          description: OK
+  /api/command/tenants:
+    get:
+      summary: Brokerages, server-side search, sort and pagination
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string, enum: [trial, active, suspended] }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [name, status, created, trial] }
+        - in: query
+          name: dir
+          schema: { type: string, enum: [ASC, DESC] }
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Page of tenants
+  /api/command/tenants/{id}:
+    get:
+      summary: Brokerage detail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Tenant
+    patch:
+      summary: Change plan, trial, status or notes
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Updated
+  /api/command/activity:
+    get:
+      summary: Platform activity log
+      responses:
+        "200":
+          description: Page
+  /api/app/dashboard:
+    get:
+      summary: Office home. Counts follow the viewer's book. Owners also get seats. Stages, funded volume, letters on file, the next due tasks, and the newest open loans come with the counts.
+      responses:
+        "200":
+          description: Counts
+  /api/app/clients/{id}:
+    get:
+      summary: One client, their loans, and recent conversations.
+      responses:
+        "200":
+          description: File
+    patch:
+      summary: Save a birthday, phone, or email on a client.
+      responses:
+        "200":
+          description: Saved
+  /api/app/clients:
+    get:
+      summary: Clients grid. format=csv downloads the current search and sort, up to 2000 rows.
+      responses:
+        "200":
+          description: Page
+    post:
+      summary: Add a lead
+      responses:
+        "201":
+          description: Created
+  /api/app/loans:
+    get:
+      summary: Loan board when board=1. Each stage returns 20 cards. Search, purpose and assignee filter on the server. Archived loans stay off. A stageId with an offset loads the next page of that stage. Without board=1, a flat page remains.
+      responses:
+        "200":
+          description: Columns, or one column when stageId is set
+    post:
+      summary: Open a loan
+      responses:
+        "201":
+          description: Created
+  /api/app/loans/{id}:
+    get:
+      summary: One loan file, assignments, letter, checklist, documents, and compliance.
+      responses:
+        "200":
+          description: Loan file
+    put:
+      summary: Save the file. Stage moves are limited to owners, leaders, and loan officers. A held letter stays off while tasks are open.
+      responses:
+        "200":
+          description: Saved
+  /api/app/loans/{id}/mismo:
+    get:
+      summary: MISMO 3.4 XML of the stored loan fields. It does not invent credit, assets, or a product.
+      responses:
+        "200":
+          description: XML file
+  /api/app/loans/{id}/packet:
+    get:
+      summary: One-page PDF of the stored loan fields and checklist. Locked while the letter hold is on and a task is open.
+      responses:
+        "200":
+          description: PDF file
+  /api/app/clients/template:
+    get:
+      summary: CSV template for client import.
+      responses:
+        "200":
+          description: CSV
+  /api/app/clients/import:
+    post:
+      summary: Import up to 200 clients. Each row needs a known lead source and is assigned to the importer.
+      responses:
+        "201":
+          description: Created count
+  /api/app/tasks/bulk:
+    post:
+      summary: Mark selected tasks done.
+      responses:
+        "200":
+          description: Updated
+  /api/app/tasks/{id}:
+    delete:
+      summary: Delete a task.
+      responses:
+        "200":
+          description: Deleted
+  /api/app/realtors:
+    get:
+      summary: Realtor search.
+      responses:
+        "200":
+          description: List
+    post:
+      summary: Add a realtor.
+      responses:
+        "201":
+          description: Created
+  /api/app/groups:
+    get:
+      summary: Client groups and member counts.
+      responses:
+        "200":
+          description: List
+    post:
+      summary: Add a group.
+      responses:
+        "201":
+          description: Created
+  /api/app/calendar:
+    get:
+      summary: Appointments, tasks due this month, and birthdays.
+      responses:
+        "200":
+          description: List
+  /api/app/calendar/{id}:
+    patch:
+      summary: Confirm or complete an appointment.
+      responses:
+        "200":
+          description: Saved
+  /api/public/office/{slug}:
+    get:
+      summary: Public office for apply and booking. A person link adds their photo, NMLS, note, phone, email, and saved links.
+      responses:
+        "200":
+          description: Office
+  /api/public/apply/{slug}:
+    post:
+      summary: Public application. Creates a lead and a loan in Draft, opens a borrower portal account for that email, and sends a branded welcome with document instructions and a sign-in button. The welcome waits when the office is out of emails. The account is still created. Staff who watch applications still get their alert. Property, employment, and task templates are filed too.
+      responses:
+        "201":
+          description: Created
+  /api/public/apply/{slug}/draft:
+    get:
+      summary: Resume a public application by token.
+      responses:
+        "200":
+          description: Draft
+    put:
+      summary: Save a public application draft.
+      responses:
+        "200":
+          description: Saved
+  /api/public/analyze/{slug}:
+    post:
+      summary: Public credit summary. Creates a lead, a loan, and files the summary on that loan.
+      responses:
+        "201":
+          description: Created
+  /api/public/book/{slug}/slots:
+    get:
+      summary: Open visit times for a date. officer uses that person's hours.
+      responses:
+        "200":
+          description: Slots
+  /api/public/book/move:
+    post:
+      summary: Move a visit with its public token.
+      responses:
+        "200":
+          description: Moved
+  /api/public/book/{slug}:
+    post:
+      summary: Book an open slot. Returns a token the client can use to move it.
+      responses:
+        "201":
+          description: Created
+  /api/app/loan-draft:
+    get:
+      summary: The signed-in user's unfinished new-loan draft.
+      responses:
+        "200":
+          description: Draft
+    put:
+      summary: Save the new-loan draft.
+      responses:
+        "200":
+          description: Saved
+  /api/app/share-link:
+    get:
+      summary: The signed-in person's application link. A name slug is created when they do not have one yet.
+      responses:
+        "200":
+          description: Link
+    post:
+      summary: Email the signed-in person's application link.
+      responses:
+        "200":
+          description: Sent
+  /api/app/share-link/rotate:
+    post:
+      summary: Retire the current personal application link and issue a new one.
+      responses:
+        "200":
+          description: Rotated
+  /api/app/task-templates:
+    get:
+      summary: Office task templates. New loans copy them. Later edits do not rewrite open files.
+      responses:
+        "200":
+          description: Templates
+    post:
+      summary: Add a task template.
+      responses:
+        "201":
+          description: Created
+  /api/app/scheduler:
+    get:
+      summary: Weekly hours, slot length, buffer, advance window, and minimum notice.
+      responses:
+        "200":
+          description: Settings
+    put:
+      summary: Save scheduler settings for the signed-in user.
+      responses:
+        "200":
+          description: Saved
+  /api/portal/tasks/{id}:
+    patch:
+      summary: Borrower starts a task or finishes it with a note.
+      responses:
+        "200":
+          description: Saved
+  /api/portal/documents:
+    post:
+      summary: Borrower uploads a file onto their loan.
+      responses:
+        "201":
+          description: Stored
+  /api/portal/profile:
+    put:
+      summary: Borrower updates name, phone, and address.
+      responses:
+        "200":
+          description: Saved
+  /api/portal/home:
+    get:
+      summary: Borrower loans, open tasks, and documents for the signed-in email.
+      responses:
+        "200":
+          description: Home
+  /api/app/team:
+    get:
+      summary: Team grid. format=csv downloads the current search, up to 2000 rows.
+      responses:
+        "200":
+          description: Page
+    post:
+      summary: Invite a teammate
+      responses:
+        "201":
+          description: Invited
+  /api/app/brand:
+    get:
+      summary: Saved brokerage name, phone, NMLS, office address, letter hold, sender and style direction
+      responses:
+        "200":
+          description: Brand profile
+        "401":
+          description: errors.unauthorized
+    patch:
+      summary: Brokerage name, phone, NMLS, address, letter hold, support email, any hex color, corners, headline, and custom domain on Scale or Custom
+      responses:
+        "200":
+          description: Saved
+  /api/app/brand/asset:
+    post:
+      summary: Upload or remove the portal logo or favicon. PNG, JPEG, WebP. Favicon also accepts ICO.
+      responses:
+        "200":
+          description: Public file URL, or null when removed
+        "400":
+          description: errors.brand.file, errors.brand.favicon, or errors.brand.large
+        "503":
+          description: errors.blob
+  /api/app/profile:
+    get:
+      summary: Signed-in staff profile
+    patch:
+      summary: Name, phone, language, NMLS, bio, timezone, specializations, alerts, and public link
+  /api/app/profile/photo:
+    post:
+      summary: Upload or clear the staff photo
+  /api/app/filters:
+    get:
+      summary: Saved list views for one screen
+    post:
+      summary: Save the current search and sort
+  /api/app/filters/{id}:
+    delete:
+      summary: Remove a saved view owned by the signed-in person
+  /api/app/letters:
+    get:
+      summary: Whether letters wait for open tasks
+  /api/app/site:
+    get:
+      summary: Five branded pages, with defaults when none are saved
+    put:
+      summary: Save home, about, loans, faq, and contact
+  /api/public/site/{slug}:
+    get:
+      summary: Public brokerage site
+  /api/public/site/{slug}/contact:
+    post:
+      summary: Public contact form. Creates a contact.
+  /api/app/office:
+    get:
+      summary: Menu for the signed-in role, after plan, hide and role rules
+  /api/app/office/menu:
+    get:
+      summary: Full menu editor for the brokerage owner
+    patch:
+      summary: Rename, hide, reorder and set role visibility
+  /api/command/tenants/{id}/menu:
+    get:
+      summary: Command center reads a brokerage menu
+    patch:
+      summary: Command center overrides a brokerage menu
+  /api/app/stages:
+    get:
+      summary: Pipeline stages for this brokerage. A new office starts at Draft and ends at Loan Funded.
+    post:
+      summary: Add a stage
+  /api/app/stages/reorder:
+    patch:
+      summary: Reorder stages
+  /api/app/loans/{id}:
+    patch:
+      summary: Move a loan to a stage after the office confirms. Entering a funded stage marks the file funded. Leaving it opens the file again and checks the open-loan cap. A stage change stops the old reminder and can start the new one.
+  /api/app/reports:
+    get:
+      summary: Open loans, funded volume, letters on file, days to fund, per officer
+  /api/app/contacts:
+    get:
+      summary: Address book grid. format=csv downloads the current search and sort, up to 2000 rows.
+    post:
+      summary: Add a contact who is not on a loan yet
+  /api/app/contacts/{id}/convert:
+    post:
+      summary: Create a pipeline client from a contact and relink conversations
+  /api/app/conversations:
+    get:
+      summary: Inbox threads
+    post:
+      summary: Start a thread. Email sends now. A text sends on the Twilio line when it is connected. Call can ring the forwarding number and then connect the client.
+  /api/app/tasks:
+    get:
+      summary: Task board. Included from Growth. Search is on the title. Each column pages 20 cards. A loan officer sees their own tasks, unassigned tasks with no loan, and tasks on their loans.
+    post:
+      summary: Add a task. A due time schedules one email to the assignee, by priority.
+  /api/app/tasks/{id}:
+    patch:
+      summary: Move, reassign, or change a task. Done, low priority, or a cleared date cancels the reminder.
+  /api/cron/daily:
+    get:
+      summary: Once a day. Flow steps and task reminders run apart. A reminder sends only while the task board is on. Requires the cron secret.
+  /api/app/documents:
+    get:
+      summary: Document checklist. Included on every plan, separate from the task board.
+    post:
+      summary: Add a needed document
+  /api/app/compliance:
+    get:
+      summary: Compliance steps created with each loan
+  /api/app/templates:
+    get:
+      summary: Message templates saved for this brokerage. Email templates include the designed fields.
+    post:
+      summary: Save a template. Email templates store greeting, headline, button, details and footer.
+  /api/app/templates/{id}:
+    put:
+      summary: Update a template for this brokerage
+  /api/command/emails:
+    get:
+      summary: MortgageProx system emails. Requires tenants.write.
+  /api/command/emails/{code}:
+    put:
+      summary: Update a MortgageProx system email. Codes are sign_in, workspace_ready, invite and transcript.
+  /api/command/tenants/{id}/templates:
+    get:
+      summary: A brokerage's templates, for the platform owner
+  /api/command/tenants/{id}/templates/{templateId}:
+    put:
+      summary: Update a brokerage template from the command center
+  /api/app/reminders:
+    get:
+      summary: Reminder flows for this brokerage. Seeds the six stage flows once, all off.
+    post:
+      summary: Create a flow. The owner or leadership only. It starts off.
+  /api/app/reminders/{id}:
+    get:
+      summary: One flow, its steps, and the email and text templates
+    put:
+      summary: Save the flow graph and update any linked template. The owner or leadership only.
+  /api/app/reminders/{id}/active:
+    post:
+      summary: Turn a flow on or off
+  /api/app/reminders/{id}/runs:
+    get:
+      summary: People currently in a flow. A loan officer sees their own book.
+  /api/cron/flow-reminders:
+    get:
+      summary: Advance due reminder flows. Requires the cron secret.
+  /api/app/campaigns:
+    get:
+      summary: Campaign topics, the contact allowance, and sent campaigns
+    post:
+      summary: Send a campaign to one topic through marketing email. It does not spend the transactional allowance.
+  /api/app/campaigns/people:
+    get:
+      summary: Clients, contacts, or realtors with an email who can join a topic
+  /api/app/campaigns/topics:
+    post:
+      summary: Add a campaign topic for this brokerage
+  /api/app/campaigns/audience:
+    post:
+      summary: Add picked people to a topic. Past the included contacts, the response asks for a monthly pack before saving.
+  /api/app/campaigns/audience/remove:
+    post:
+      summary: Remove one person from a topic
+  /api/app/billing/campaign-packs:
+    post:
+      summary: Add or remove a monthly pack of 100 campaign contacts
+  /api/command/campaigns:
+    get:
+      summary: Shared campaign contact capacity
+    patch:
+      summary: Raise campaign capacity. Platform billing only. The floor is 1,000, or the contacts already stored.
+  /api/resend/webhook:
+    post:
+      summary: Opens, clicks, and unsubscribes for campaigns. Requires the Resend webhook secret.
+  /api/app/broadcasts:
+    get:
+      summary: Broadcasts, with how many were sent
+    post:
+      summary: Send a broadcast. Email goes out now. A text needs Twilio and an office number. One send reaches the first 500 people.
+  /api/app/transcripts:
+    get:
+      summary: Call transcripts saved on conversations
+  /api/app/mailboxes:
+    get:
+      summary: Microsoft 365 mailboxes for this brokerage
+    post:
+      summary: Save a mailbox and start Microsoft sign-in when the app is configured
+  /api/public/microsoft/callback:
+    get:
+      summary: Microsoft sign-in return. Connects the mailbox only if the account matches.
+  /api/app/phone:
+    get:
+      summary: Ring order, forwarding, lines and blocked numbers
+  /api/app/phone/settings:
+    put:
+      summary: Save this person's forwarding and voicemail
+  /api/app/phone/lines:
+    post:
+      summary: Add a brokerage number
+  /api/app/phone/blocked:
+    post:
+      summary: Block a number so it never rings
+  /api/app/phone/blocked/{id}:
+    delete:
+      summary: Unblock a number
+  /api/app/credit:
+    get:
+      summary: Credit summaries
+    post:
+      summary: Save a branded credit summary
+  /api/portal/credit:
+    post:
+      summary: Borrower uploads a credit summary
+  /api/app/calculators:
+    get:
+      summary: Saved calculator scenarios
+    post:
+      summary: Save a scenario on a client file
+  /api/cron/trial-reminders:
+    get:
+      summary: Cron placeholder authorized with Bearer CRON_SECRET
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: errors.unauthorized

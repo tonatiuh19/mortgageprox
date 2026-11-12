@@ -1,0 +1,84 @@
+MortgageProx: a white-label mortgage platform
+
+MortgageProx is a ready-to-launch, all-in-one workspace for mortgage brokerages, delivered entirely under each brokerage’s own brand. Each company gets its own website, logo, colors, web address, phone numbers and email identity. Their team and their borrowers only ever see their brand, never MortgageProx.
+
+Behind the scenes, each brokerage gets a complete system to manage the people, paperwork and conversations behind every home loan. Loan officers guide borrowers from first question to closing day. Borrowers get a secure branded portal to apply, upload documents and track progress. Real-estate partners are kept in the loop and marketed to from the same place.
+
+MortgageProx isn’t a bank and doesn’t approve loans. It’s the office around the loan, ready on day one and branded as the brokerage’s own.
+
+What “white-label” means for each brokerage
+Their brand everywhere: logo, colors, fonts and favicon across the website, workspace, borrower portal, emails, texts, documents and letters.
+Their own web address: for example portal.theirbrokerage.com.
+Their own phone numbers and email sender: messages come from the brokerage, not from MortgageProx.
+Their own way of working: loan stage names and order, message templates, follow-up flows, roles and what each role can see.
+Their data, kept separate: every brokerage’s clients, loans and conversations are private to that company.
+Fast launch: a guided setup with ready-made templates and flows, so a new brokerage can start working right away and customize over time.
+Who uses it
+MortgageProx team: launches and supports each brokerage and manages company settings.
+Brokerage owner / leadership: sees their whole business, sets up their team and decides who can see what.
+Loan officers: manage their own clients, loans and conversations.
+Partners (real-estate agents): referral partners the brokerage works with and markets to.
+Borrowers: people buying or refinancing a home, using the brokerage’s branded portal.
+Modules
+
+1. Branded website. Each brokerage’s front door: home page, loan options, about, FAQ and contact form, in their brand. Visitors can start an application, book a meeting or request a free credit review.
+
+2. Loan application. A guided, step-by-step application borrowers complete on their own. Loan officers can also enter one on a borrower’s behalf.
+
+3. Pipeline. A visual board of every loan and where it stands, from application to funded. Each brokerage can name and order the stages to match how they work, and every move can automatically send the right message to the borrower.
+
+4. Clients and leads. The address book of every borrower and prospect, with history, loans, notes and lead source. Each loan officer has their own book of contacts, and contacts can be handed over between team members.
+
+5. People and groups. Organizes contacts into groups, such as households, co-borrowers or VIP partners, so related people are handled together.
+
+6. Realtor management. A directory of agent partners and prospects, so each brokerage can grow and nurture its referral network.
+
+7. Conversations (unified inbox). Every text and call with a client in one thread, from the brokerage’s own numbers. It also handles group texts, shared and personal lines, saving unknown callers, and blocking spam numbers.
+
+8. Phone. Make and take calls from the browser, forward calls to a cell phone, and receive voicemails with written transcripts.
+
+9. Email. The team’s email inside the platform, connected to their own mailboxes, with branded signatures, drafts and attachments.
+
+10. Tasks and documents. Loan checklists, such as “upload two pay stubs” or “sign this form”. Borrowers upload, fill in short forms and sign electronically in the branded portal, and the team reviews and approves.
+
+11. Compliance. Standard checklists so every file follows the brokerage’s required steps.
+
+12. Pre-approval letters. Professional letters on the brokerage’s letterhead that borrowers can share with their agent.
+
+13. Free credit analysis. Borrowers upload a credit report and get an easy-to-read branded summary, a friendly way to start a relationship.
+
+14. Calculators. Loan payment and income calculators for the team, plus a simple branded version for borrowers. Results can be saved to a client’s file.
+
+15. Reminder flows (automation). Drag-and-drop follow-up sequences, such as “welcome text, wait two days, send document checklist.” Each brokerage starts from a ready-made library and adjusts it.
+
+16. Broadcasts and campaigns. Branded announcements by text or email to groups of realtors or clients, with tracking of opens and clicks.
+
+17. Templates. Ready-made email, text and stage messages, pre-loaded and editable, so every brokerage sounds like itself.
+
+18. Scheduler. A branded booking page where clients pick a time. The team sets availability, and meetings get a video link automatically.
+
+19. Calendar. Appointments plus key dates: client birthdays, home-purchase anniversaries and partner milestones, so the team reaches out at the right moment.
+
+20. AI assistant. A built-in assistant, under the brokerage’s chosen name, that answers questions, drafts messages and helps the team work faster.
+
+21. Notifications. In-app and email alerts for new messages, applications, voicemails and bookings. Each person chooses what they receive.
+
+22. Dashboard and reports. Pipeline size, active applications, closing time, conversion and monthly goals per loan officer, plus deeper reports for leadership.
+
+23. Borrower portal. The borrower’s private, branded space: loans and progress, tasks, documents, calculator, credit analysis and profile.
+
+24. Team and permissions. Add loan officers and partners, assign phone lines, and decide which sections each role can see.
+
+25. Brand and company settings. Logo, colors, web address, contact details, phone numbers, email sender, stage names and defaults, all managed per brokerage.
+
+26. Activity log. A record of who did what and when, for accountability and peace of mind.
+
+In one sentence
+
+MortgageProx lets any mortgage brokerage launch its own modern, fully branded platform to win clients, move every loan forward, talk to everyone involved and never miss a follow-up, while its borrowers enjoy a simple, reassuring experience that feels entirely like the brokerage’s own.
+
+MortgageProx should feel like a calm, premium blank canvas that each brokerage instantly makes its own. The neutral base is warm off-white (#FAFAF9) in light mode and deep ink (#0B0F19) in dark mode, with soft slate grays and generous white space. The brand’s single accent color carries all the personality: buttons, highlights, progress and charts. Status colors stay soft and muted (emerald, amber, rose).
+
+Typography is clean and confident. Inter or Geist for the interface, with a touch of character from Instrument Serif or Fraunces for big headlines and borrower-facing moments, plus tabular numbers for rates and amounts. Surfaces are rounded cards (12–16px), hairline borders, layered soft shadows and subtle glass blur on headers. Motion is quick and springy: cards slide in, stages glide across the pipeline, and success moments get a gentle glow.
+
+For inspiration, look at the precision of Linear, the warmth and polish of Stripe and Mercury, the friendliness of Airbnb, and the canvas feel of Notion and Framer. The result is professional enough for a loan file and modern enough that borrowers want to open it, with every brokerage’s logo and color dropped in on top.

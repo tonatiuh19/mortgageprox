@@ -1,0 +1,19 @@
+---
+description: Critical MortgageProx rules — always apply
+alwaysApply: true
+---
+
+# Critical rules
+
+- **npm only.** Never pnpm or yarn.
+- **Schema first.** Read `database/schema.sql` before writing SQL. Never guess column names.
+- **Migrations.** Add `database/migrations/YYYYMMDD_HHMMSS_description.sql`, apply it, then update `database/schema.sql` to match. Do not edit `schema.sql` alone.
+- **API monolith.** Runtime API logic stays inline in `api/index.ts`. From `shared/`, `import type` only. A relative value import breaks Vercel with `ERR_MODULE_NOT_FOUND`.
+- **Redux only for server data.** Components dispatch and select. No axios or fetch in components.
+- **Swagger.** Any API change updates `api/swagger.yaml` in the same change.
+- **Design system.** Any visual, email or flow change updates `DESIGN_SYSTEM.md` in the same change.
+- **i18n.** User-visible strings in `client/` use `t()`. Add the key to both `client/locales/en/translation.json` and `client/locales/es/translation.json`. Fallback language is English.
+- **No em dash in customer-facing copy.** Use a period or a comma. A middle dot is fine in titles.
+- **Tests do not send real notifications and do not write the shared TiDB.** `VITEST=true` dry-runs Resend. Routes under test use `__test.setDb`. Do not point Vitest at production data.
+- **Mobile.** Public pages, the wizard, login and both portals fit ~320px with no document horizontal scroll. See `mobile-responsive.mdc`.
+- Fix root causes. Do not paper over type errors.

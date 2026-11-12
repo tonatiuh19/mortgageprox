@@ -1,0 +1,16 @@
+---
+description: Mandatory mobile responsiveness — no document horizontal scroll
+alwaysApply: true
+---
+
+# Mobile
+
+Every public page, login, wizard, command center and brokerage portal must work from about 320px wide.
+
+- No document-level horizontal scroll. Users scroll vertically.
+- Wide tables live in `.table-scroll` (`overflow-x: auto; max-width: 100%`).
+- Under 900px the portal is a top bar, an off-canvas sheet, and a fixed tab bar. It is not a row of chips that widens the page.
+- Flex and grid children that should shrink need `min-width: 0`.
+- Do not use `100vw` for full-bleed layout.
+- Do not hide overflow only on `body`. Fix the child that sticks out.
+- Before finishing UI work, check about 320px and 375px.

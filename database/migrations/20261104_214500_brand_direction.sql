@@ -1,0 +1,2 @@
+ALTER TABLE tenants ADD COLUMN brand_radius VARCHAR(12) NOT NULL DEFAULT 'soft';
+ALTER TABLE tenants ADD COLUMN brand_headline VARCHAR(12) NOT NULL DEFAULT 'serif';

@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "crons": [
+    {
+      "path": "/api/cron/daily",
+      "schedule": "0 15 * * *"
+    }
+  ],
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(.*\\.(js|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|avif|mp4|webm|txt|xml|webmanifest))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

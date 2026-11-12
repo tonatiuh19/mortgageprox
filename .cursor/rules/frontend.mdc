@@ -1,0 +1,16 @@
+---
+description: Frontend styling, i18n, and UI conventions
+globs: client/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# Frontend
+
+- `@/*` is `client/`. `@shared/*` is `shared/`.
+- Tailwind tokens from `client/global.css`. Prefer `primary`, `muted`, `destructive`, `card`, `border`.
+- Lists that can grow use `DataGrid` (`client/components/ui/data-grid.tsx`): server sort, search, pagination, and a phone card.
+- Portals use `PortalShell`. Group nav items with `section`. Phones use the top bar, More sheet and bottom tabs.
+- Every new string goes through `t()` and both locale files.
+- `PageMeta` sets the document title.
+- Log unexpected UI failures with `client/utils/logger.ts`.
+- Customer-facing copy does not use an em dash.
