@@ -27,13 +27,18 @@ function mockBoard(wide: boolean) {
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
   })) as unknown as typeof window.matchMedia;
-  vi.mocked(api.get).mockResolvedValue({
-    data: {
-      items,
-      staff: [{ id: 4, name: "Ana Lopez" }],
-      loans: [{ id: 9, name: "Sam Rivera" }],
-      pagination: { page: 1, limit: 80, total: 4, totalPages: 1 },
-    },
+  vi.mocked(api.get).mockImplementation(async (url: string) => {
+    if (url.includes("task-templates")) {
+      return { data: { items: [{ id: 11, title: "Appraisal checklist", detail: "", category: "document", priority: "normal" }] } };
+    }
+    return {
+      data: {
+        items,
+        staff: [{ id: 4, name: "Ana Lopez" }],
+        loans: [{ id: 9, name: "Sam Rivera" }],
+        pagination: { page: 1, limit: 80, total: 4, totalPages: 1 },
+      },
+    };
   });
 }
 
@@ -51,7 +56,8 @@ describe("Tasks", () => {
         <Tasks />
       </Provider>,
     );
-    expect(await screen.findByText("Order appraisal")).toBeTruthy();
+    expect(await screen.findAllByRole("button", { name: "Edit" })).toHaveLength(4);
+    expect(screen.getByText("Order appraisal")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "To do" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "In progress" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Waiting" })).toBeTruthy();
