@@ -175,7 +175,7 @@ export default function StartWizard() {
   if (catalog.startedEmail) {
     return (
       <div className="mx-auto flex min-h-[70vh] w-full max-w-xl min-w-0 items-center px-5 py-16 sm:px-8">
-        <PageMeta title={t("wizard.readyTitle")} description={t("wizard.readyNext")} />
+        <PageMeta title={t("wizard.readyTitle")} description={t("wizard.readyNext")} noIndex />
         <div className="relative w-full min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-8 text-center shadow-glow sm:p-12">
           <Confetti />
           <p className="relative z-10 text-sm font-medium text-primary">{t("wizard.readyKicker")}</p>

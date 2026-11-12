@@ -63,12 +63,14 @@ import Realtors from "./pages/app/Realtors";
 import CalendarPage from "./pages/app/Calendar";
 import Groups from "./pages/app/Groups";
 import { BorrowerHome, BorrowerLayout } from "./pages/portal/Borrower";
+import { PageMetaProvider } from "@/components/PageMeta";
 
 const App = () => (
   <Provider store={store}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <PageMetaProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<SiteLayout />}>
@@ -139,6 +141,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      </PageMetaProvider>
     </TooltipProvider>
   </Provider>
 );

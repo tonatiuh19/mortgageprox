@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import PageMeta from "@/components/PageMeta";
 import { cn } from "@/lib/utils";
 
 type Tone = "emerald" | "amber" | "rose";
@@ -193,8 +195,10 @@ function LoanCard({ loan, index }: { loan: Loan; index: number }) {
 }
 
 export default function Pipeline() {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
+      <PageMeta title={t("meta.previewTitle")} description={t("meta.previewDescription")} noIndex />
       <div className="animate-slide-up">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
           Workspace preview

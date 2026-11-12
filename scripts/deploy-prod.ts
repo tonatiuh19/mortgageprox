@@ -432,46 +432,68 @@ const REQUIRED_PROD_ENV: Array<{ name: string; why: string; fix: string }> = [
   },
 ];
 
+/** The Vercel CLI is its own Node process, so it does not inherit the IPv4 settings in deployAsk. */
+function vercelEnv(): NodeJS.ProcessEnv {
+  const extra = "--dns-result-order=ipv4first --no-network-family-autoselection";
+  const current = process.env.NODE_OPTIONS || "";
+  const nodeOptions = current.includes("dns-result-order") ? current : `${current} ${extra}`.trim();
+  return { ...process.env, NODE_OPTIONS: nodeOptions };
+}
+
+function deploymentUrl(output: string): string | null {
+  return /Production\s+(https:\/\/\S+\.vercel\.app)/.exec(output)?.[1]
+    || /https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9-]+\.vercel\.app/.exec(output)?.[0]
+    || null;
+}
+
 /**
  * `vercel --prod`, shown live and captured. "fetch failed" after the upload means this machine lost the
- * connection while the build kept running on Vercel. Then the deployment is checked every 15 s until it
- * is Ready, or until it really failed.
+ * connection. If Vercel already printed a deployment, it is checked every 15 s until it is Ready. If the
+ * connection died before a deployment existed, the upload is tried again.
  */
 async function deployToVercel(vercelArgs: string[]): Promise<void> {
-  let output = "";
-  const code = await new Promise<number>((resolve, reject) => {
-    const child = spawn("npx", ["vercel", "--prod", ...vercelArgs], { stdio: ["inherit", "pipe", "pipe"], shell: false, env: process.env });
-    child.stdout.on("data", (d) => {
-      output += String(d);
-      process.stdout.write(d);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    let output = "";
+    const code = await new Promise<number>((resolve, reject) => {
+      const child = spawn("npx", ["vercel", "--prod", ...vercelArgs], { stdio: ["inherit", "pipe", "pipe"], shell: false, env: vercelEnv() });
+      child.stdout.on("data", (d) => {
+        output += String(d);
+        process.stdout.write(d);
+      });
+      child.stderr.on("data", (d) => {
+        output += String(d);
+        process.stderr.write(d);
+      });
+      child.on("error", reject);
+      child.on("exit", (c) => resolve(c ?? 1));
     });
-    child.stderr.on("data", (d) => {
-      output += String(d);
-      process.stderr.write(d);
-    });
-    child.on("error", reject);
-    child.on("exit", (c) => resolve(c ?? 1));
-  });
-  if (code === 0) return;
-  const url = /Production\s+(https:\/\/\S+\.vercel\.app)/.exec(output)?.[1];
-  if (!url) throw new Error(`npx vercel --prod failed with exit code ${code} (nothing was uploaded)`);
-  console.log(`\n⏳ The Vercel CLI lost its connection after uploading. Checking ${url} every 15 s until the build finishes…`);
-  for (let i = 0; i < 80; i++) {
-    let status = "";
-    try {
-      const info = await captureCommand("npx", ["vercel", "inspect", url]);
-      status = /status\s+●?\s*(\w+)/i.exec(info)?.[1]?.toLowerCase() ?? "";
-    } catch {
-      status = "";
+    if (code === 0) return;
+    const url = deploymentUrl(output);
+    const dropped = /fetch failed/i.test(output);
+    if (!url && dropped && attempt < 3) {
+      console.log(`\n⏳ The upload lost its connection before Vercel registered a deployment. Trying again (${attempt}/2)…\n`);
+      await new Promise((r) => setTimeout(r, attempt * 5_000));
+      continue;
     }
-    if (status === "ready") {
-      console.log("✅ The build finished on Vercel and is live.");
-      return;
+    if (!url) throw new Error(`npx vercel --prod failed with exit code ${code} (nothing was uploaded)`);
+    console.log(`\n⏳ The Vercel CLI lost its connection after uploading. Checking ${url} every 15 s until the build finishes…`);
+    for (let i = 0; i < 80; i++) {
+      let status = "";
+      try {
+        const info = await captureCommand("npx", ["vercel", "inspect", url]);
+        status = /status\s+●?\s*(\w+)/i.exec(info)?.[1]?.toLowerCase() ?? "";
+      } catch {
+        status = "";
+      }
+      if (status === "ready") {
+        console.log("✅ The build finished on Vercel and is live.");
+        return;
+      }
+      if (status === "error" || status === "canceled") throw new Error(`The Vercel build ${status === "error" ? "failed" : "was canceled"}: ${url}`);
+      await new Promise((r) => setTimeout(r, 15_000));
     }
-    if (status === "error" || status === "canceled") throw new Error(`The Vercel build ${status === "error" ? "failed" : "was canceled"}: ${url}`);
-    await new Promise((r) => setTimeout(r, 15_000));
+    throw new Error(`Still not Ready after 20 minutes: check ${url} in the Vercel dashboard, then run npm run deploy:stamp-version -- <version>`);
   }
-  throw new Error(`Still not Ready after 20 minutes: check ${url} in the Vercel dashboard, then run npm run deploy:stamp-version -- <version>`);
 }
 
 async function captureCommand(command: string, args: string[]): Promise<string> {

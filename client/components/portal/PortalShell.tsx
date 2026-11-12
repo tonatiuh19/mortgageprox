@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Lock, LogOut, MoreHorizontal, X, type LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +24,18 @@ export type PortalNavItem = {
   sort?: number;
 };
 
+const ScreenTitleContext = createContext<(title: string) => void>(() => undefined);
+
+export function useScreenTitle(title: string) {
+  const setTitle = useContext(ScreenTitleContext);
+  useEffect(() => {
+    const next = title.trim();
+    if (!next) return;
+    setTitle(next);
+    return () => setTitle("");
+  }, [setTitle, title]);
+}
+
 type Props = {
   loginPath: string;
   titleKey: string;
@@ -42,6 +54,7 @@ export default function PortalShell({ loginPath, titleKey, homePath, nav, tabs, 
   const profile = useAppSelector((state) => state.workspace.staffProfile);
   const navId = useId();
   const [navOpen, setNavOpen] = useState(false);
+  const [screenTitle, setScreenTitle] = useState("");
   const [legalPage, setLegalPage] = useState<"terms" | "privacy" | null>(null);
   const { user, bootstrapped, loading } = useAppSelector((state) => state.auth);
 
@@ -82,7 +95,15 @@ export default function PortalShell({ loginPath, titleKey, homePath, nav, tabs, 
       data-headline={user.brandHeadline || undefined}
       style={brandVars({ accent: user.primaryColor, radius: user.brandRadius })}
     >
-      <PageMeta title={t(titleKey)} description={t(titleKey)} noIndex iconUrl={user.faviconUrl} />
+      <ScreenTitleContext.Provider value={setScreenTitle}>
+      <PageMeta
+        title={documentSection(location.pathname, screenTitle, visible, t, titleKey)}
+        description={documentSection(location.pathname, screenTitle, visible, t, titleKey)}
+        siteName={user.tenantName || (homePath === "/command" ? t("command.title") : t(titleKey))}
+        noIndex
+        iconUrl={user.faviconUrl}
+        themeColor={user.primaryColor}
+      />
       <header className="portal-mobile-bar">
         <Link to={homePath} className="portal-mobile-brand min-w-0">
           {user.logoUrl ? <img src={user.logoUrl} alt={user.tenantName || ""} className="portal-brand-logo" /> : t(titleKey)}
@@ -174,6 +195,25 @@ export default function PortalShell({ loginPath, titleKey, homePath, nav, tabs, 
           <span className="portal-tab-label">{t("portalAuth.more")}</span>
         </button>
       </nav>
+      </ScreenTitleContext.Provider>
     </div>
   );
+}
+
+function documentSection(
+  path: string,
+  screenTitle: string,
+  nav: PortalNavItem[],
+  t: (key: string) => string,
+  titleKey: string,
+): string {
+  if (screenTitle.trim()) return screenTitle.trim();
+  const match = [...nav].sort((a, b) => b.to.length - a.to.length).find((item) => (
+    item.end ? path === item.to : path === item.to || path.startsWith(`${item.to}/`)
+  ));
+  if (match) return match.label || t(match.labelKey);
+  if (path.startsWith("/app/profile")) return t("profile.title");
+  if (/^\/app\/loans\/[^/]+\/letter$/.test(path)) return t("letters.title");
+  if (/^\/command\/tenants\/[^/]+$/.test(path)) return t("command.tenants");
+  return t(titleKey);
 }

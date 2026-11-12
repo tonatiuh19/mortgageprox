@@ -1,8 +1,11 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import PageMeta from "@/components/PageMeta";
 import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   useEffect(() => {
@@ -14,6 +17,7 @@ const NotFound = () => {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col items-start px-5 py-32 sm:px-8 lg:py-40">
+      <PageMeta title={t("meta.missingTitle")} description={t("meta.missingDescription")} noIndex />
       <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
         Error 404
       </p>

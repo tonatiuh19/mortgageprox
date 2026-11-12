@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { roleCan } from "@shared/api";
+import { useScreenTitle } from "@/components/portal/PortalShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatMoney } from "@/lib/format";
@@ -34,6 +35,8 @@ export default function TenantDetail() {
       setIncluded(tenant.campaignIncludedOverride == null ? "" : String(tenant.campaignIncludedOverride));
     }
   }, [tenant]);
+
+  useScreenTitle(tenant && Number(tenant.id) === Number(id) ? String(tenant.name || "") : "");
 
   if (!tenant || Number(tenant.id) !== Number(id)) return <p className="text-sm text-muted-foreground">…</p>;
   const modules = (tenant.modules as string[]) || [];

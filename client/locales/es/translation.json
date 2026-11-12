@@ -8,6 +8,25 @@
     "whiteLabel": "Marca blanca",
     "roles": "Para quién es"
   },
+  "meta": {
+    "brand": "MortgageProx",
+    "homeTitle": "MortgageProx · La oficina alrededor del préstamo",
+    "homeDescription": "MortgageProx es un espacio de marca blanca para corredurías hipotecarias: sitio, pipeline, portal del solicitante y herramientas del equipo.",
+    "missingTitle": "Página no encontrada",
+    "missingDescription": "Esta página no es parte de la oficina.",
+    "privateTitle": "MortgageProx",
+    "privateDescription": "Entra al espacio de trabajo.",
+    "previewTitle": "Vista del pipeline",
+    "previewDescription": "Una muestra del pipeline. No es una oficina real.",
+    "legalDescription": "Las reglas de este espacio y cómo se maneja un expediente.",
+    "applyTitle": "Solicita con {{name}}",
+    "applyDescription": "{{name}} camina el expediente contigo. Empieza con tu correo.",
+    "bookTitle": "Agenda con {{name}}",
+    "bookDescription": "Elige una hora con {{name}}.",
+    "analyzeTitle": "Una mirada al crédito con {{name}}",
+    "analyzeDescription": "Comparte un resumen corto de tu crédito con {{name}}.",
+    "siteDescription": "{{name}} ayuda a comprar y a refinanciar una casa."
+  },
   "dev": {
     "fill": "Llenar datos de prueba"
   },

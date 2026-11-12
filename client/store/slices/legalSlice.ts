@@ -43,6 +43,8 @@ export const fetchPublicHost = createAsyncThunk("legal/host", async (_, { reject
     if (!tenant || typeof tenant !== "object") return null;
     return {
       name: String(tenant.name || ""),
+      slug: String(tenant.slug || ""),
+      customDomain: tenant.customDomain ? String(tenant.customDomain) : null,
       logoUrl: tenant.logoUrl ? String(tenant.logoUrl) : null,
       primaryColor: tenant.primaryColor ? String(tenant.primaryColor) : null,
     };
@@ -76,7 +78,7 @@ export const saveLegalPage = createAsyncThunk(
   },
 );
 
-type LegalHost = { name: string; logoUrl: string | null; primaryColor: string | null };
+type LegalHost = { name: string; slug: string; customDomain: string | null; logoUrl: string | null; primaryColor: string | null };
 
 type LegalState = {
   body: string;

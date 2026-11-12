@@ -82,6 +82,12 @@ On `npm run dev`, opened from localhost or a private LAN address, create forms s
 
 The marketing footer follows the page. The main column is at least one viewport tall, so the footer stays below the first screen and you scroll to reach it.
 
+## Document head
+
+Every page sets its own title, description, canonical, language, and social tags. The signed-in tab is the section, then the office: Pipeline · Northwind Mortgage. A client or loan file uses that person's name. Command and the borrower portal do the same. Login, the workspace, command, and the portal are noindex.
+
+The first HTML of a public page is written by the server, so a shared link shows the office before JavaScript runs. Home, pricing, start, and the platform terms and privacy are indexable as MortgageProx. An office site, application, booking, or credit page uses the office name, and the person's name on a personal link. Google may index that page only when the host is the office's own domain. On a MortgageProx host it stays noindex, and the share card still shows the office. Private routes keep the noindex shell.
+
 ## Mobile check
 
 After UI changes, confirm at about 320px and 375px that `documentElement.scrollWidth` does not exceed `clientWidth`.

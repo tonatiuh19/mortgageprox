@@ -1,8 +1,9 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import fs from "node:fs";
 import path from "node:path";
 import http from "node:http";
-import { createServer } from "./api/index";
+import { createServer, renderSpaDocument } from "./api/index";
 
 const API_PORT = 8081;
 
@@ -41,7 +42,43 @@ function expressPlugin(): Plugin {
   return {
     name: "express-plugin",
     apply: "serve",
-    async configureServer() {
+    async configureServer(vite) {
+      vite.middlewares.use(async (req, res, next) => {
+        const url = req.url || "/";
+        const pathOnly = url.split("?")[0];
+        const accept = String(req.headers.accept || "");
+        if (
+          req.method !== "GET"
+          || pathOnly.startsWith("/api")
+          || pathOnly.startsWith("/@")
+          || pathOnly.startsWith("/node_modules")
+          || pathOnly.startsWith("/src")
+          || pathOnly.startsWith("/client")
+          || pathOnly.startsWith("/__")
+          || /\.[a-z0-9]+$/i.test(pathOnly)
+          || (accept && !accept.includes("text/html"))
+        ) {
+          next();
+          return;
+        }
+        try {
+          const template = await vite.transformIndexHtml(url, fs.readFileSync(path.resolve("index.html"), "utf8"));
+          const host = String(req.headers.host || "localhost:8080");
+          const html = await renderSpaDocument({
+            html: template,
+            path: url,
+            host,
+            language: String(req.headers["accept-language"] || ""),
+            origin: `http://${host}`,
+          });
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", "private, no-cache");
+          res.end(html);
+        } catch (error) {
+          next(error);
+        }
+      });
       const prev = devApi.__mpDevApiServer;
       if (prev?.listening) {
         await new Promise<void>((resolve) => {

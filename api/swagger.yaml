@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: MortgageProx API
   version: 0.1.0
-  description: Passwordless brokerage platform. All routes are served by api/index.ts.
+  description: Passwordless brokerage platform. All routes are served by api/index.ts. Public HTML documents for the home page, pricing, start, terms, privacy, the office site, apply, book, and analyze are returned by this service with a title, description, canonical, and social tags. An office page is indexable only on that office's own domain. Every other document stays noindex.
 paths:
   /api/app/billing:
     get:

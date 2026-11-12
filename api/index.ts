@@ -5,6 +5,8 @@
  */
 import "dotenv/config";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
@@ -2394,6 +2396,381 @@ function publicOrigin(req: Request): string {
   // Vite proxies /api to :8081 and rewrites Host. Share links and emails must stay on the app.
   if (host === "localhost:8081" || host === "127.0.0.1:8081" || host === "[::1]:8081") host = "localhost:8080";
   return `${proto}://${host}`;
+}
+
+const PLATFORM_THEME = "#2F4ED8";
+const DOC_COPY = {
+  en: {
+    homeTitle: "MortgageProx · The office around the loan",
+    homeDescription: "MortgageProx is a white-label workspace for mortgage brokerages: branded website, pipeline, borrower portal and team tools.",
+    pricingTitle: "Pricing",
+    pricingDescription: "Starter, Growth and Scale open with a $299 start fee, then 30 days. Custom is quoted. The style studio is included.",
+    startTitle: "Start a trial",
+    startDescription: "Tell us how the brokerage works. The answers become a plan and 30 days.",
+    termsTitle: "Terms",
+    privacyTitle: "Privacy",
+    legalDescription: "The rules for using this workspace, and how a file is handled.",
+    privateTitle: "MortgageProx",
+    privateDescription: "Sign in to the workspace.",
+    missingTitle: "Page not found",
+    missingDescription: "This page is not part of the office.",
+    applyTitle: (who: string) => `Apply with ${who}`,
+    bookTitle: (who: string) => `Schedule with ${who}`,
+    analyzeTitle: (who: string) => `Credit look with ${who}`,
+    applyDescription: (who: string) => `${who} will walk the file with you. Start with your email.`,
+    bookDescription: (who: string) => `Pick a time with ${who}.`,
+    analyzeDescription: (who: string) => `Share a short credit picture with ${who}.`,
+    siteDescription: (name: string) => `${name} helps people buy and refinance a home.`,
+  },
+  es: {
+    homeTitle: "MortgageProx · La oficina alrededor del préstamo",
+    homeDescription: "MortgageProx es un espacio de marca blanca para corredurías hipotecarias: sitio, pipeline, portal del solicitante y herramientas del equipo.",
+    pricingTitle: "Precios",
+    pricingDescription: "Starter, Growth y Scale abren con una cuota de $299 y luego 30 días. Custom se cotiza. El estudio de estilo va incluido.",
+    startTitle: "Empieza una prueba",
+    startDescription: "Cuéntanos cómo trabaja la correduría. Las respuestas se vuelven un plan y 30 días.",
+    termsTitle: "Términos",
+    privacyTitle: "Privacidad",
+    legalDescription: "Las reglas de este espacio y cómo se maneja un expediente.",
+    privateTitle: "MortgageProx",
+    privateDescription: "Entra al espacio de trabajo.",
+    missingTitle: "Página no encontrada",
+    missingDescription: "Esta página no es parte de la oficina.",
+    applyTitle: (who: string) => `Solicita con ${who}`,
+    bookTitle: (who: string) => `Agenda con ${who}`,
+    analyzeTitle: (who: string) => `Una mirada al crédito con ${who}`,
+    applyDescription: (who: string) => `${who} camina el expediente contigo. Empieza con tu correo.`,
+    bookDescription: (who: string) => `Elige una hora con ${who}.`,
+    analyzeDescription: (who: string) => `Comparte un resumen corto de tu crédito con ${who}.`,
+    siteDescription: (name: string) => `${name} ayuda a comprar y a refinanciar una casa.`,
+  },
+} as const;
+
+type DocHead = {
+  title: string;
+  description: string;
+  robots: string;
+  canonical: string;
+  siteName: string;
+  image: string;
+  card: "summary" | "summary_large_image";
+  locale: "en" | "es";
+  themeColor: string;
+  icon: string;
+  ogType: "website" | "profile";
+  jsonLd: Record<string, unknown> | null;
+};
+
+function escHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function headLang(header: string): "en" | "es" {
+  const first = header.split(",")[0]?.trim().toLowerCase() || "en";
+  return first.startsWith("es") ? "es" : "en";
+}
+
+function bareHost(host: string): string {
+  return host.toLowerCase().split(":")[0].replace(/\.$/, "").replace(/^www\./, "");
+}
+
+function onOwnDomain(host: string, customDomain: string | null): boolean {
+  if (!customDomain) return false;
+  return bareHost(host) === bareHost(customDomain);
+}
+
+function docRobots(indexable: boolean): string {
+  return indexable ? "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" : "noindex, nofollow";
+}
+
+function docTitle(page: string, site: string): string {
+  if (!site || page === site || page.endsWith(`· ${site}`)) return page;
+  return `${page} · ${site}`;
+}
+
+function plainClip(value: string, max = 160): string {
+  const text = value.replace(/[#>*_[\]()`]/g, " ").replace(/\s+/g, " ").trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1).trim()}…`;
+}
+
+function absoluteAsset(origin: string, value: string | null): string {
+  if (!value) return `${origin}/favicon.svg`;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${origin}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+function splitRequestPath(raw: string): { path: string; query: URLSearchParams } {
+  const [pathPart, search = ""] = raw.split("#")[0].split("?");
+  let path = pathPart || "/";
+  if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
+  if (!path.startsWith("/") || path.includes("..") || path.length > 200 || !/^\/[a-zA-Z0-9/_-]*$/.test(path)) path = "/404";
+  return { path, query: new URLSearchParams(search) };
+}
+
+function documentShell(locale: "en" | "es", origin: string, path: string, missing = false): DocHead {
+  const copy = DOC_COPY[locale];
+  const title = missing ? docTitle(copy.missingTitle, "MortgageProx") : copy.privateTitle;
+  return {
+    title,
+    description: missing ? copy.missingDescription : copy.privateDescription,
+    robots: docRobots(false),
+    canonical: `${origin}${path === "/404" ? "/" : path}`,
+    siteName: "MortgageProx",
+    image: `${origin}/favicon.svg`,
+    card: "summary",
+    locale,
+    themeColor: PLATFORM_THEME,
+    icon: "/favicon.svg",
+    ogType: "website",
+    jsonLd: null,
+  };
+}
+
+let spaTemplateCache: string | null = null;
+
+function localSpaTemplate(): string | null {
+  const dist = path.resolve(process.cwd(), "dist", "index.html");
+  const root = path.resolve(process.cwd(), "index.html");
+  if (process.env.VERCEL && fs.existsSync(dist)) return fs.readFileSync(dist, "utf8");
+  if (!process.env.VERCEL && fs.existsSync(root)) return fs.readFileSync(root, "utf8");
+  if (fs.existsSync(dist)) return fs.readFileSync(dist, "utf8");
+  return null;
+}
+
+async function loadSpaTemplate(origin: string): Promise<string> {
+  if (process.env.VITEST === "true") {
+    const local = localSpaTemplate();
+    if (!local) throw new Error("template");
+    return local;
+  }
+  if (spaTemplateCache) return spaTemplateCache;
+  if (!process.env.VERCEL) {
+    const local = localSpaTemplate();
+    if (local) {
+      spaTemplateCache = local;
+      return local;
+    }
+  }
+  const response = await fetch(new URL("/index.html", origin).toString(), { headers: { "x-mp-template": "1" } });
+  if (!response.ok) throw new Error(`template ${response.status}`);
+  const text = await response.text();
+  if (!text.includes('id="root"')) throw new Error("template");
+  spaTemplateCache = text;
+  return text;
+}
+
+function applyDocumentHead(html: string, head: DocHead): string {
+  const icons = head.icon.startsWith("/favicon")
+    ? `<link rel="icon" href="/favicon.ico" sizes="48x48" />\n    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />`
+    : `<link rel="icon" href="${escHtml(head.icon)}" />\n    <link rel="apple-touch-icon" href="${escHtml(head.icon)}" />`;
+  const ld = head.jsonLd ? `\n    <script type="application/ld+json">${JSON.stringify(head.jsonLd).replace(/</g, "\\u003c")}</script>` : "";
+  const block = `<!-- mp-head:start -->
+    <title>${escHtml(head.title)}</title>
+    <meta name="description" content="${escHtml(head.description)}" />
+    <meta name="robots" content="${escHtml(head.robots)}" />
+    <meta name="googlebot" content="${escHtml(head.robots)}" />
+    <link rel="canonical" href="${escHtml(head.canonical)}" />
+    <link rel="alternate" hrefLang="en" href="${escHtml(head.canonical)}" />
+    <link rel="alternate" hrefLang="es" href="${escHtml(head.canonical)}" />
+    <link rel="alternate" hrefLang="x-default" href="${escHtml(head.canonical)}" />
+    <meta name="theme-color" content="${escHtml(head.themeColor)}" />
+    <meta name="application-name" content="${escHtml(head.siteName)}" />
+    <meta property="og:site_name" content="${escHtml(head.siteName)}" />
+    <meta property="og:type" content="${head.ogType}" />
+    <meta property="og:title" content="${escHtml(head.title)}" />
+    <meta property="og:description" content="${escHtml(head.description)}" />
+    <meta property="og:url" content="${escHtml(head.canonical)}" />
+    <meta property="og:image" content="${escHtml(head.image)}" />
+    <meta property="og:locale" content="${head.locale === "es" ? "es_MX" : "en_US"}" />
+    <meta property="og:locale:alternate" content="${head.locale === "es" ? "en_US" : "es_MX"}" />
+    <meta name="twitter:card" content="${head.card}" />
+    <meta name="twitter:title" content="${escHtml(head.title)}" />
+    <meta name="twitter:description" content="${escHtml(head.description)}" />
+    <meta name="twitter:image" content="${escHtml(head.image)}" />
+    ${icons}${ld}
+    <!-- mp-head:end -->`;
+  const withLang = html.replace(/<html lang="[^"]*">/i, `<html lang="${head.locale}">`);
+  if (withLang.includes("<!-- mp-head:start -->") && withLang.includes("<!-- mp-head:end -->")) {
+    return withLang.replace(/<!-- mp-head:start -->[\s\S]*?<!-- mp-head:end -->/, block);
+  }
+  return withLang.replace("</head>", `    ${block}\n  </head>`);
+}
+
+type HeadOffice = {
+  id: number;
+  name: string;
+  slug: string;
+  customDomain: string | null;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+  primaryColor: string | null;
+};
+
+async function officeForHead(slug: string): Promise<HeadOffice | null> {
+  if (!/^[a-z0-9-]{3,80}$/.test(slug)) return null;
+  const rows = await queryRows(
+    `SELECT id, name, slug, custom_domain, logo_url, favicon_url, primary_color FROM tenants WHERE slug = ? AND status <> 'suspended' LIMIT 1`,
+    [slug],
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    id: num(row.id),
+    name: String(row.name || "").slice(0, 160),
+    slug: String(row.slug || slug),
+    customDomain: row.custom_domain ? String(row.custom_domain) : null,
+    logoUrl: row.logo_url ? String(row.logo_url) : null,
+    faviconUrl: row.favicon_url ? String(row.favicon_url) : null,
+    primaryColor: normalizeHex(row.primary_color),
+  };
+}
+
+function officeDocument(input: {
+  locale: "en" | "es";
+  origin: string;
+  path: string;
+  host: string;
+  office: HeadOffice;
+  person: string;
+  pageTitle: string;
+  description: string;
+  image: string | null;
+  profile: boolean;
+}): DocHead {
+  const indexable = onOwnDomain(input.host, input.office.customDomain);
+  const image = absoluteAsset(input.origin, input.image || input.office.logoUrl);
+  const alreadyNamed = !input.person && input.pageTitle.includes(input.office.name);
+  const title = alreadyNamed ? input.pageTitle : docTitle(input.pageTitle, input.office.name);
+  return {
+    title,
+    description: plainClip(input.description),
+    robots: docRobots(indexable),
+    canonical: `${input.origin}${input.path}`,
+    siteName: input.office.name,
+    image,
+    card: /\.(png|jpe?g|webp)(\?|$)/i.test(image) ? "summary_large_image" : "summary",
+    locale: input.locale,
+    themeColor: input.office.primaryColor || PLATFORM_THEME,
+    icon: absoluteAsset(input.origin, input.office.faviconUrl || input.office.logoUrl || "/favicon.svg"),
+    ogType: input.profile ? "profile" : "website",
+    jsonLd: indexable ? {
+      "@context": "https://schema.org",
+      "@type": "FinancialService",
+      name: input.office.name,
+      url: `${input.origin}${input.path}`,
+      image,
+      areaServed: "US",
+    } : null,
+  };
+}
+
+export async function renderSpaDocument(input: { html: string; path: string; host: string; language: string; origin: string }): Promise<string> {
+  const locale = headLang(input.language);
+  const copy = DOC_COPY[locale];
+  const { path: urlPath, query } = splitRequestPath(input.path);
+  const origin = input.origin.replace(/\/$/, "");
+  let head = documentShell(locale, origin, urlPath);
+  try {
+    if (urlPath === "/") {
+      head = {
+        ...documentShell(locale, origin, "/"),
+        title: copy.homeTitle,
+        description: copy.homeDescription,
+        robots: docRobots(true),
+        image: `${origin}/favicon.svg`,
+        jsonLd: { "@context": "https://schema.org", "@type": "WebSite", name: "MortgageProx", url: origin, inLanguage: ["en", "es"] },
+      };
+    } else if (urlPath === "/pricing" || urlPath === "/start") {
+      const pricing = urlPath === "/pricing";
+      head = {
+        ...documentShell(locale, origin, urlPath),
+        title: docTitle(pricing ? copy.pricingTitle : copy.startTitle, "MortgageProx"),
+        description: pricing ? copy.pricingDescription : copy.startDescription,
+        robots: docRobots(true),
+      };
+    } else if (urlPath === "/terms" || urlPath === "/privacy") {
+      const platform = query.get("scope") === "platform";
+      const found = platform ? "none" : await publicTenant(input.host);
+      const label = urlPath === "/privacy" ? copy.privacyTitle : copy.termsTitle;
+      if (found !== "none" && found !== "hidden") {
+        const indexable = onOwnDomain(input.host, found.customDomain);
+        head = {
+          ...documentShell(locale, origin, urlPath),
+          title: docTitle(label, found.name),
+          description: copy.legalDescription,
+          robots: docRobots(indexable),
+          siteName: found.name,
+          image: absoluteAsset(origin, found.logoUrl),
+          card: found.logoUrl && /\.(png|jpe?g|webp)(\?|$)/i.test(found.logoUrl) ? "summary_large_image" : "summary",
+          themeColor: normalizeHex(found.primaryColor) || PLATFORM_THEME,
+          icon: absoluteAsset(origin, found.logoUrl || "/favicon.svg"),
+        };
+      } else {
+        head = {
+          ...documentShell(locale, origin, urlPath),
+          title: docTitle(label, "MortgageProx"),
+          description: copy.legalDescription,
+          robots: docRobots(true),
+        };
+      }
+    } else {
+      const parts = urlPath.split("/").filter(Boolean);
+      const kind = parts[0];
+      const slug = parts[1] || "";
+      if ((kind === "apply" || kind === "book" || kind === "analyze" || kind === "w") && slug) {
+        const office = await officeForHead(slug);
+        if (!office) head = documentShell(locale, origin, urlPath, true);
+        else if (kind === "w") {
+          const code = SITE_CODES.includes(parts[2] as typeof SITE_CODES[number]) ? parts[2] : "home";
+          const pages = await queryRows(`SELECT title, body_md FROM tenant_site_pages WHERE tenant_id = ? AND code = ? LIMIT 1`, [office.id, code]);
+          const fallback = defaultSitePage(code, office.name);
+          const pageTitle = pages[0]?.title ? String(pages[0].title) : fallback.title;
+          const body = pages[0]?.body_md ? String(pages[0].body_md) : fallback.body;
+          head = officeDocument({
+            locale, origin, path: urlPath, host: input.host, office,
+            person: "",
+            pageTitle: code === "home" ? office.name : pageTitle,
+            description: plainClip(body) || copy.siteDescription(office.name),
+            image: office.logoUrl,
+            profile: false,
+          });
+        } else {
+          const officerSlug = (parts[2] || "").toLowerCase();
+          const person = officerSlug
+            ? (await queryRows(
+              `SELECT first_name, last_name, photo_url FROM tenant_users WHERE tenant_id = ? AND (public_slug = ? OR apply_token = ?) AND status = 'active' LIMIT 1`,
+              [office.id, officerSlug.slice(0, 48), officerSlug.slice(0, 48)],
+            ))[0]
+            : null;
+          if (officerSlug && !person) head = documentShell(locale, origin, urlPath, true);
+          else {
+            const personName = person ? `${person.first_name || ""} ${person.last_name || ""}`.trim() : "";
+            const who = personName || office.name;
+            const pageTitle = kind === "book" ? copy.bookTitle(who) : kind === "analyze" ? copy.analyzeTitle(who) : copy.applyTitle(who);
+            const description = kind === "book" ? copy.bookDescription(who) : kind === "analyze" ? copy.analyzeDescription(who) : copy.applyDescription(who);
+            head = officeDocument({
+              locale, origin, path: urlPath, host: input.host, office,
+              person: personName,
+              pageTitle: personName ? pageTitle : pageTitle,
+              description,
+              image: person?.photo_url ? String(person.photo_url) : office.logoUrl,
+              profile: Boolean(personName),
+            });
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("[document]", error instanceof Error ? error.message : error);
+    head = documentShell(locale, origin, urlPath);
+  }
+  return applyDocumentHead(input.html, head);
 }
 
 function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
@@ -10040,6 +10417,33 @@ function buildApp() {
 
   app.use("/api", (_req, res) => {
     deny(res, 404, "errors.notFound");
+  });
+
+  app.use(async (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    if (req.path.startsWith("/api") || req.path === "/index.html") return next();
+    if (/\.[a-z0-9]+$/i.test(req.path)) return next();
+    if (req.headers["x-mp-template"]) return next();
+    const accept = String(req.headers.accept || "");
+    if (accept && !accept.includes("text/html") && !accept.includes("*/*")) return next();
+    try {
+      const origin = publicOrigin(req);
+      const template = await loadSpaTemplate(origin);
+      const html = await renderSpaDocument({
+        html: template,
+        path: req.originalUrl || req.url || "/",
+        host: requestHost(req),
+        language: String(req.headers["accept-language"] || ""),
+        origin,
+      });
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "private, no-cache");
+      res.setHeader("Vary", "Host, Accept-Language");
+      res.status(200).send(html);
+    } catch (error) {
+      console.error("[document]", error instanceof Error ? error.message : error);
+      next();
+    }
   });
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

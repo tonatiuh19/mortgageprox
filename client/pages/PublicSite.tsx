@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { OfficeMeta } from "@/components/PageMeta";
+import PageMeta from "@/components/PageMeta";
 import PageSkeleton from "@/components/portal/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +55,7 @@ export default function PublicSite() {
     else setError(String(result.payload || "errors.server"));
   }
 
-  if (missing) return <p className="p-8 text-sm text-muted-foreground">{t("errors.notFound")}</p>;
+  if (missing) return <><PageMeta title={t("meta.missingTitle")} description={t("meta.missingDescription")} noIndex /><p className="p-8 text-sm text-muted-foreground">{t("errors.notFound")}</p></>;
   if (!site) return <PageSkeleton cards={1} lines={4} label={t("app.loading")} />;
 
   const current = site.pages.find((item) => item.code === page) || site.pages[0];
@@ -61,6 +63,15 @@ export default function PublicSite() {
 
   return (
     <div className="portal-rise mx-auto min-h-screen max-w-3xl px-5 py-8" style={accent ? { ["--primary" as string]: accent } : undefined}>
+      <OfficeMeta
+        slug={site.slug}
+        kind="site"
+        name={site.name}
+        pageTitle={page === "home" || !current ? site.name : current.title}
+        description={current?.body?.replace(/[#>*_]/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)}
+        image={site.logoUrl}
+        themeColor={site.primaryColor}
+      />
       <header className="flex flex-wrap items-center justify-between gap-4">
         {site.logoUrl ? <img src={site.logoUrl} alt={site.name} className="max-h-10 max-w-[180px] object-contain" /> : <strong className="font-display text-2xl">{site.name}</strong>}
         <nav className="flex flex-wrap gap-3 text-sm">

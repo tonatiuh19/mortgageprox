@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useScreenTitle } from "@/components/portal/PortalShell";
 import PageSkeleton from "@/components/portal/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/format";
@@ -24,6 +25,8 @@ export default function Letter() {
   const [loan, setLoan] = useState<LetterLoan | null>(null);
   const [brand, setBrand] = useState<BrandProfile | null>(null);
   const [error, setError] = useState("");
+
+  useScreenTitle(loan ? `${loan.client.firstName} ${loan.client.lastName}`.trim() : "");
 
   useEffect(() => {
     void dispatch(fetchLoanFile(Number(id))).then((result) => {

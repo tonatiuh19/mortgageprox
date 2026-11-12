@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { OfficeMeta } from "@/components/PageMeta";
+import PageMeta from "@/components/PageMeta";
 import PageSkeleton from "@/components/portal/PageSkeleton";
 import PersonWelcome from "@/components/portal/PersonWelcome";
 import { Button } from "@/components/ui/button";
@@ -53,11 +55,12 @@ export default function Book() {
     else setError(String(result.payload || "errors.server"));
   }
 
-  if (missing) return <p className="p-8 text-sm text-muted-foreground">{t("errors.notFound")}</p>;
+  if (missing) return <><PageMeta title={t("meta.missingTitle")} description={t("meta.missingDescription")} noIndex /><p className="p-8 text-sm text-muted-foreground">{t("errors.notFound")}</p></>;
   if (!office) return <PageSkeleton cards={1} lines={4} label={t("app.loading")} />;
 
   return (
     <form className="portal-rise mx-auto min-h-screen w-full max-w-lg space-y-6 px-4 py-10 sm:px-6 sm:py-14" style={office.primaryColor ? { ["--primary" as string]: office.primaryColor } : undefined} onSubmit={onSubmit}>
+      <OfficeMeta slug={slug} kind="book" name={office.name} person={office.officer?.name} image={office.officer?.photoUrl || office.logoUrl} themeColor={office.primaryColor} />
       <PersonWelcome office={office} />
       <h1 className="font-display text-4xl">{t("book.title")}</h1>
       <p className="text-muted-foreground">{t("book.lead")}</p>

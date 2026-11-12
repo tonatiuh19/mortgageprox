@@ -19,9 +19,20 @@ export default function LegalPage({ code }: { code: "terms" | "privacy" }) {
   }, [code, scope, office, dispatch]);
 
   const title = code === "privacy" ? t("legal.privacy") : t("legal.terms");
+  const host = useAppSelector((state) => state.legal.host);
+  const platform = scope === "platform" || !host;
+  const hostname = window.location.hostname.replace(/^www\./, "");
+  const domain = (host?.customDomain || "").replace(/^www\./, "");
+  const officeCopy = !platform && Boolean(host);
+  const indexable = platform || Boolean(domain && hostname === domain);
   return (
     <div className="mx-auto min-w-0 max-w-3xl px-5 py-12 sm:px-8">
-      <PageMeta title={title} description={title} />
+      <PageMeta
+        title={title}
+        description={t("meta.legalDescription")}
+        siteName={officeCopy ? host?.name : undefined}
+        noIndex={!indexable}
+      />
       {errorKey ? <p className="text-sm text-destructive">{t(errorKey.startsWith("errors.") ? errorKey : `errors.${errorKey}`)}</p> : null}
       {status === "loading" ? <p className="text-sm text-muted-foreground">{t("wizard.loading")}</p> : null}
       {status === "ready" && !errorKey ? <Markdown source={body} /> : null}

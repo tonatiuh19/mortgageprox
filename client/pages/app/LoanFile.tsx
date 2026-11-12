@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useScreenTitle } from "@/components/portal/PortalShell";
 import PageSkeleton from "@/components/portal/PageSkeleton";
 import SectionHeader from "@/components/portal/SectionHeader";
 import { Button } from "@/components/ui/button";
@@ -155,6 +156,8 @@ export default function LoanFile() {
       load();
     }
   }
+
+  useScreenTitle(loan ? `${loan.client.firstName} ${loan.client.lastName}`.trim() : "");
 
   if (!loan && !error) return <PageSkeleton cards={3} lines={4} label={t("app.loading")} />;
   if (!loan) return <p className="text-sm text-destructive">{t(error.startsWith("errors.") ? error : `errors.${error}`)}</p>;

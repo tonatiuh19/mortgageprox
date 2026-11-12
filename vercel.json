@@ -11,7 +11,8 @@
   ],
   "functions": {
     "api/index.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "dist/index.html"
     }
   },
   "routes": [
@@ -20,8 +21,24 @@
       "dest": "/api/index.ts"
     },
     {
+      "src": "/index.html",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*\\.(js|css|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp|avif|mp4|webm|txt|xml|webmanifest))",
       "dest": "/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(pricing|start|terms|privacy)",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(w|apply|book|analyze)(/.*)?",
+      "dest": "/api/index.ts"
     },
     {
       "src": "/(.*)",

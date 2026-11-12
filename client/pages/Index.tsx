@@ -1,4 +1,6 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import PageMeta from "@/components/PageMeta";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -492,8 +494,10 @@ function BrandPreview() {
 }
 
 export default function Index() {
+  const { t } = useTranslation();
   return (
     <div>
+      <PageMeta title={t("meta.homeTitle")} description={t("meta.homeDescription")} titleFull />
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[640px] bg-[radial-gradient(60%_50%_at_50%_0%,hsl(var(--primary)/0.10),transparent)]" />
         <div className="pointer-events-none absolute -left-32 top-32 -z-10 size-[28rem] animate-drift rounded-full bg-primary/15 blur-3xl" />

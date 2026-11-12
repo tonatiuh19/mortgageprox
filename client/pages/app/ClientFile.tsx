@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useScreenTitle } from "@/components/portal/PortalShell";
 import PageSkeleton from "@/components/portal/PageSkeleton";
 import SectionHeader from "@/components/portal/SectionHeader";
 import { formatMoney } from "@/lib/format";
@@ -33,6 +34,8 @@ export default function ClientFile() {
       else setError(String(result.payload || "errors.server"));
     });
   }, [dispatch, id]);
+
+  useScreenTitle(file ? `${file.client.firstName} ${file.client.lastName}`.trim() : "");
 
   if (!file && !error) return <PageSkeleton cards={2} lines={3} label={t("app.loading")} />;
   if (!file) return <p className="text-sm text-destructive">{t(error.startsWith("errors.") ? error : `errors.${error}`)}</p>;

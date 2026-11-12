@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { EmailDraft, FlowDetail as FlowDetailType, FlowEdge, FlowEdgeType, FlowStep, FlowStepType } from "@shared/api";
+import { useScreenTitle } from "@/components/portal/PortalShell";
 import SectionHeader from "@/components/portal/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,6 +78,8 @@ export default function FlowDetailPage() {
   useEffect(() => {
     if (tab === "people") void dispatch(fetchFlowRuns(flowId));
   }, [dispatch, flowId, tab]);
+
+  useScreenTitle(draft?.name || "");
 
   if (!draft || !detail || detail.flow.id !== flowId) {
     return <p className="text-sm text-muted-foreground">{errorKey ? t(errorKey) : t("flows.loading")}</p>;

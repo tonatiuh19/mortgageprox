@@ -5,6 +5,8 @@ import LegalModal from "@/components/content/LegalModal";
 import ApplyFrame from "@/components/portal/ApplyFrame";
 import ApplySummary from "@/components/portal/ApplySummary";
 import ApplySuccess from "@/components/portal/ApplySuccess";
+import { OfficeMeta } from "@/components/PageMeta";
+import PageMeta from "@/components/PageMeta";
 import PageSkeleton from "@/components/portal/PageSkeleton";
 import PersonWelcome from "@/components/portal/PersonWelcome";
 import DevFill from "@/components/dev/DevFill";
@@ -237,11 +239,12 @@ export default function Apply() {
     setBirthday("");
   }
 
-  if (missing) return <p className="p-8 text-sm text-muted-foreground">{t("errors.notFound")}</p>;
+  if (missing) return <><PageMeta title={t("meta.missingTitle")} description={t("meta.missingDescription")} noIndex /><p className="p-8 text-sm text-muted-foreground">{t("errors.notFound")}</p></>;
   if (!office) return <PageSkeleton cards={1} lines={4} label={t("app.loading")} />;
 
   return (
     <div style={office.primaryColor ? { ["--primary" as string]: office.primaryColor } : undefined}>
+    <OfficeMeta slug={slug} kind="apply" name={office.name} person={office.officer?.name} image={office.officer?.photoUrl || office.logoUrl} themeColor={office.primaryColor} />
     <ApplyFrame office={office} step={sent ? STEPS.length : step} saved={saved && !sent} onLegal={setLegal}>
     <form onSubmit={onSubmit}>
       {step === 0 ? (

@@ -8,6 +8,25 @@
     "whiteLabel": "White-label",
     "roles": "Who it's for"
   },
+  "meta": {
+    "brand": "MortgageProx",
+    "homeTitle": "MortgageProx · The office around the loan",
+    "homeDescription": "MortgageProx is a white-label workspace for mortgage brokerages: branded website, pipeline, borrower portal and team tools.",
+    "missingTitle": "Page not found",
+    "missingDescription": "This page is not part of the office.",
+    "privateTitle": "MortgageProx",
+    "privateDescription": "Sign in to the workspace.",
+    "previewTitle": "Pipeline preview",
+    "previewDescription": "A sample of the loan pipeline. It is not a live office.",
+    "legalDescription": "The rules for using this workspace, and how a file is handled.",
+    "applyTitle": "Apply with {{name}}",
+    "applyDescription": "{{name}} will walk the file with you. Start with your email.",
+    "bookTitle": "Schedule with {{name}}",
+    "bookDescription": "Pick a time with {{name}}.",
+    "analyzeTitle": "Credit look with {{name}}",
+    "analyzeDescription": "Share a short credit picture with {{name}}.",
+    "siteDescription": "{{name}} helps people buy and refinance a home."
+  },
   "dev": {
     "fill": "Fill test data"
   },
